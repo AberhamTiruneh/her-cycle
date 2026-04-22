@@ -136,6 +136,8 @@ workflows:
 
     artifacts:
       - build/ios/ipa/HerCycle.ipa
+
+    publishing:
       email:
         recipients:
           - aa.aberham@gmail.com
