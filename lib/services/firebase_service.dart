@@ -25,7 +25,15 @@ class FirebaseService {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     } on FirebaseException catch (e) {
-      if (e.code != 'duplicate-app') rethrow;
+      if (e.code != 'duplicate-app') {
+        // Log but don't crash — app will show auth error gracefully
+        // ignore: avoid_print
+        print('Firebase init error: ${e.code} — ${e.message}');
+      }
+    } catch (e) {
+      // Catch any other init errors (e.g. missing iOS config)
+      // ignore: avoid_print
+      print('Firebase init error: $e');
     }
 
     // Firestore offline persistence is disabled until the Firebase database
