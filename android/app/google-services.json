@@ -1,0 +1,29 @@
+{
+    "project_info": {
+        "project_number": "636783579179",
+        "project_id": "her-cycle-a8b35",
+        "storage_bucket": "her-cycle-a8b35.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:636783579179:android:ed034ca8613267b661da6e",
+                "android_client_info": {
+                    "package_name": "com.yeab.hercycle"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyA5F5DuF0t3Y__fZ-_jhIWzlcAGg2dSBzY"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}

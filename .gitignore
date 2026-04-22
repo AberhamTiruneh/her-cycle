@@ -1,0 +1,100 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+flutter_*.png
+flutter_*.keystore
+
+# iOS
+ios/.symlinks/
+ios/.generated/
+ios/.dart_tool/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.xcframework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Android
+android/local.properties
+android/GeneratedPluginRegistrant.gradle
+
+# Dart
+.dart_tool
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Firebase - keep these (client-side config needed for builds)
+# google-services.json
+# GoogleService-Info.plist
+# firebase_options.dart
+
+# Android signing (DO NOT commit real credentials)
+android/key.properties
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Credentials
+credentials.json
+*.key
+*.keystore
+*.jks
+
+# Generated files
+*.g.dart
+*.config.dart
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Output of coverage tools
+coverage
+
+# Exceptions to above rules.
+!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Signing
+android/key.properties
+*.keystore
+*.jks

@@ -1,0 +1,4 @@
+storePassword=changeit
+keyPassword=changeit
+keyAlias=hercycle
+storeFile= C:/Users/aaabe/her_cycle.keystore
