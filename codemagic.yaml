@@ -1,0 +1,126 @@
+workflows:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # iOS Workflow — builds a signed .ipa for install on a real iPhone
+  # Requires these Environment Variables set in the Codemagic dashboard:
+  #   APP_STORE_CONNECT_ISSUER_ID       → from App Store Connect > Keys
+  #   APP_STORE_CONNECT_KEY_IDENTIFIER  → from App Store Connect > Keys
+  #   APP_STORE_CONNECT_PRIVATE_KEY     → contents of your AuthKey_XXXX.p8 file
+  #   CERTIFICATE_PRIVATE_KEY           → your Apple distribution/dev cert private key
+  # ─────────────────────────────────────────────────────────────────────────────
+  ios-release:
+    name: iOS Release Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: 3.41.7
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: ad_hoc       # change to app_store for TestFlight/App Store
+        bundle_identifier: com.yeab.hercycle
+
+    scripts:
+      - name: Set up Flutter
+        script: flutter --version
+
+      - name: Install dependencies
+        script: flutter pub get
+
+      - name: Build iOS (signed)
+        script: |
+          flutter build ios --release \
+            --dart-define=FLUTTER_BUILD_NAME=$PROJECT_BUILD_NUMBER
+
+      - name: Package .ipa
+        script: |
+          xcode-project use-profiles
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --scheme Runner
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      email:
+        recipients:
+          - aa.aberham@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # iOS Unsigned — builds without code signing (for Appetize.io / compile check)
+  # No Apple credentials required — free to run on Codemagic
+  # ─────────────────────────────────────────────────────────────────────────────
+  ios-unsigned:
+    name: iOS Unsigned Build (No Apple account needed)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: 3.41.7
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+
+      - name: Build iOS unsigned
+        script: |
+          flutter build ios --release --no-codesign
+
+    artifacts:
+      - build/ios/iphoneos/Runner.app
+
+    publishing:
+      email:
+        recipients:
+          - aa.aberham@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Android Workflow — builds a release APK
+  # For a signed APK, set these Environment Variables in Codemagic dashboard:
+  #   CM_KEYSTORE         → base64-encoded .jks or .keystore file
+  #   CM_KEYSTORE_PASSWORD
+  #   CM_KEY_ALIAS
+  #   CM_KEY_PASSWORD
+  # ─────────────────────────────────────────────────────────────────────────────
+  android-release:
+    name: Android Release Build
+    max_build_duration: 60
+    instance_type: linux_x2
+
+    environment:
+      flutter: 3.41.7
+      java: 17
+      android_signing:
+        - your_keystore_reference   # set up in Codemagic > Code signing > Android
+
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+
+      - name: Build Android APK
+        script: |
+          flutter build apk --release
+
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/app-release.aab
+
+    publishing:
+      email:
+        recipients:
+          - aa.aberham@gmail.com
+        notify:
+          success: true
+          failure: true
