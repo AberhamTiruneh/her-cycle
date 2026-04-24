@@ -43,7 +43,7 @@ class _LoggingScreenState extends State<LoggingScreen> {
     'Cramps': 'የሆድ ቁርጠት',
     'Headache': 'ራስ ምታት',
     'Mood Swings': 'ስሜት ለውጥ',
-    'Bloating': 'ሆድ ማበጥ',
+    'Bloating': 'የሆድ መነፋት',
     'Fatigue': 'ድካም',
     'Nausea': 'ማቅለሽለሽ',
     'Back Pain': 'የጀርባ ሕመም',

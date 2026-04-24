@@ -12,11 +12,11 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get continueText => 'ቀጥል';
   @override
-  String get save => 'ይጠቀሙ';
+  String get save => 'ያስቀምጡ';
   @override
-  String get cancel => 'ይሞግት';
+  String get cancel => 'አጥፋ';
   @override
-  String get delete => 'ይሖስሉ';
+  String get delete => 'መደምሰስ';
   @override
   String get settings => 'ቅንብሮች';
   @override
@@ -38,9 +38,9 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get add => 'ይጨምሩ';
   @override
-  String get next => 'ሚቀጥለ';
+  String get next => 'ቀጥል';
   @override
-  String get retry => 'ምንም ሞክር';
+  String get retry => 'ድጋሜ ሞክር';
 
   @override
   String get login => 'ግባ';
@@ -87,7 +87,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get home => 'ቤት';
   @override
-  String get calendar => 'ካላንደር';
+  String get calendar => 'የቀን መቁጠሪያ';
   @override
   String get insights => 'ግንዛቤ';
   @override
@@ -98,7 +98,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get periodTracker => 'የወር አበባ መከታተያ';
   @override
-  String get startDate => 'የጀምር ቀን';
+  String get startDate => 'የጀመረበት ቀን';
   @override
   String get endDate => 'የማብቂያ ቀን';
   @override
@@ -155,7 +155,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get fertile => 'ፍላጎትር ቀናት';
   @override
-  String get ovulation => 'ነገግ';
+  String get ovulation => 'ውፃት';
   @override
   String get fertileWindow => 'ፈርቲል ወቅት';
   @override
@@ -170,7 +170,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get mood => 'ስሜት';
   @override
-  String get bloating => 'ሆድ ማበጥ';
+  String get bloating => 'የሆድ መነፋት';
   @override
   String get fatigue => 'ድካም';
   @override
@@ -183,7 +183,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get notifications => 'ማስታወሻዎች';
   @override
-  String get enableNotifications => 'ማሳወቂያዎችን አንቃ';
+  String get enableNotifications => 'ማሳወቂያዎችን አብራ';
   @override
   String get periodReminder => 'የወር አበባ ማስታወሻ';
   @override
@@ -207,9 +207,9 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get privacySecurity => 'ግላዊነት እና ደህንነት';
   @override
-  String get privacy => 'ግላዊነት እና ሱሪነት';
+  String get privacy => 'ግላዊነት እና ደህንነት';
   @override
-  String get aboutUs => 'ስለ ብዙ';
+  String get aboutUs => 'ስለ እኛ';
   @override
   String get help => 'እርዳታ እና ድጋፍ';
 }
