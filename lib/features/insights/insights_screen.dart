@@ -6,10 +6,12 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/utils/cycle_calculator.dart';
+import '../../../core/utils/ethiopian_calendar.dart';
 import '../../../core/utils/health_tips.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../models/cycle_model.dart';
 import '../../../providers/cycle_provider.dart';
+import '../../../providers/language_provider.dart';
 
 class InsightsScreen extends StatelessWidget {
   const InsightsScreen({Key? key}) : super(key: key);
@@ -394,6 +396,8 @@ class _InsightsBody extends StatelessWidget {
             cardBg: cardBg,
             textPrimary: textPrimary,
             l10n: l10n,
+            isAmharic:
+                context.watch<LanguageProvider>().currentLanguage == 'am',
           ),
           const SizedBox(height: AppSizes.spacingM),
 
@@ -556,6 +560,7 @@ class _FertileCard extends StatelessWidget {
   final Color cardBg;
   final Color textPrimary;
   final AppLocalizations l10n;
+  final bool isAmharic;
 
   const _FertileCard({
     required this.nextPeriod,
@@ -565,9 +570,12 @@ class _FertileCard extends StatelessWidget {
     required this.cardBg,
     required this.textPrimary,
     required this.l10n,
+    this.isAmharic = false,
   });
 
-  String _fmt(DateTime d) => '${d.day}/${d.month}/${d.year}';
+  String _fmt(DateTime d) => isAmharic
+      ? EthiopianCalendar.formatDate(d)
+      : '${d.day}/${d.month}/${d.year}';
 
   @override
   Widget build(BuildContext context) {
