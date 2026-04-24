@@ -645,10 +645,13 @@ class _EthiopianDatePickerDialog extends StatefulWidget {
 
 class _EthiopianDatePickerDialogState
     extends State<_EthiopianDatePickerDialog> {
-  late DateTime _focusedGregorian; // Gregorian 1st of the focused ET month
+  /// Gregorian date that corresponds to **ET day 1** of the currently
+  /// displayed ET month. Since ET months are exactly 30 days (5/6 for Pagume),
+  /// ET day N = _etMonthStart + (N-1) days. This eliminates the need for any
+  /// search and prevents the "all days selected" bug caused by fallback values.
+  late DateTime _etMonthStart;
   DateTime? _selected;
 
-  // ET month names
   static const _months = [
     '', 'መስከረም', 'ጥቅምት', 'ህዳር', 'ታህሳስ', 'ጥር',
     'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜ',
@@ -659,55 +662,44 @@ class _EthiopianDatePickerDialogState
   void initState() {
     super.initState();
     _selected = widget.initialDate;
-    _focusedGregorian = DateTime(
-        widget.initialDate.year, widget.initialDate.month, 1);
+    // Anchor to the Gregorian date of ET day 1 for initialDate's ET month.
+    final et = EthiopianCalendar.toEthiopian(widget.initialDate);
+    _etMonthStart = DateTime(
+      widget.initialDate.year,
+      widget.initialDate.month,
+      widget.initialDate.day,
+    ).subtract(Duration(days: et.day - 1));
   }
 
   EthiopianDate get _focusedET =>
-      EthiopianCalendar.toEthiopian(_focusedGregorian);
-
-  /// Gregorian DateTime for day [etDay] in the current focused ET month/year.
-  DateTime _gregorianForEtDay(int etDay) {
-    // Brute-force: walk from focused gregorian month ±2 months to find match
-    final etYear = _focusedET.year;
-    final etMonth = _focusedET.month;
-    // Each ET month starts somewhere in a Gregorian month. Search ±35 days.
-    final base = _focusedGregorian.subtract(const Duration(days: 5));
-    for (int i = 0; i < 40; i++) {
-      final d = base.add(Duration(days: i));
-      final et = EthiopianCalendar.toEthiopian(d);
-      if (et.year == etYear && et.month == etMonth && et.day == etDay) {
-        return d;
-      }
-    }
-    return _focusedGregorian; // fallback
-  }
+      EthiopianCalendar.toEthiopian(_etMonthStart);
 
   int get _daysInFocusedMonth {
-    // ET months 1–12 = 30 days; month 13 (Pagume) = 5 or 6
     if (_focusedET.month == 13) {
-      // Pagume: 6 days in ET leap year (Gregorian year before ET leap year)
       return (_focusedET.year % 4 == 3) ? 6 : 5;
     }
     return 30;
   }
 
+  /// ET day [etDay] → Gregorian date. O(1) — no search needed.
+  DateTime _gregorianForEtDay(int etDay) =>
+      _etMonthStart.add(Duration(days: etDay - 1));
+
   void _prevMonth() {
     setState(() {
-      // Go back ~30 days and land in the previous ET month
-      _focusedGregorian = _focusedGregorian.subtract(const Duration(days: 30));
-      // Ensure we're on the 1st of that ET month
-      final et = EthiopianCalendar.toEthiopian(_focusedGregorian);
-      _focusedGregorian =
-          _gregorianForEtDay(1).subtract(Duration(days: et.day - 1));
-      _focusedGregorian = _gregorianForEtDay(1);
+      // Step back 1 day to land in the previous ET month, then find its day 1.
+      final dayInPrevMonth =
+          _etMonthStart.subtract(const Duration(days: 1));
+      final et = EthiopianCalendar.toEthiopian(dayInPrevMonth);
+      _etMonthStart =
+          dayInPrevMonth.subtract(Duration(days: et.day - 1));
     });
   }
 
   void _nextMonth() {
     setState(() {
-      _focusedGregorian = _focusedGregorian.add(const Duration(days: 35));
-      _focusedGregorian = _gregorianForEtDay(1);
+      _etMonthStart =
+          _etMonthStart.add(Duration(days: _daysInFocusedMonth));
     });
   }
 
@@ -717,21 +709,20 @@ class _EthiopianDatePickerDialogState
       greg.month == _selected!.month &&
       greg.day == _selected!.day;
 
-  bool _isDisabled(DateTime greg) =>
-      greg.isBefore(DateTime(widget.firstDate.year, widget.firstDate.month,
-          widget.firstDate.day)) ||
-      greg.isAfter(DateTime(
-          widget.lastDate.year, widget.lastDate.month, widget.lastDate.day));
+  bool _isDisabled(DateTime greg) {
+    final d = DateTime(greg.year, greg.month, greg.day);
+    return d.isBefore(DateTime(widget.firstDate.year, widget.firstDate.month,
+            widget.firstDate.day)) ||
+        d.isAfter(DateTime(
+            widget.lastDate.year, widget.lastDate.month, widget.lastDate.day));
+  }
 
   @override
   Widget build(BuildContext context) {
     final et = _focusedET;
     final days = _daysInFocusedMonth;
-
-    // weekday of ET day 1 (1=Mon … 7=Sun)
-    final firstDayGreg = _gregorianForEtDay(1);
-    final startWeekday = firstDayGreg.weekday; // 1=Mon, 7=Sun
-    final leadingBlanks = startWeekday - 1; // blanks before day 1
+    // _etMonthStart IS ET day 1, so its weekday gives us the leading blanks.
+    final leadingBlanks = _etMonthStart.weekday - 1; // Mon=0 … Sun=6
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
