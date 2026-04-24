@@ -39,6 +39,19 @@ class _LoggingScreenState extends State<LoggingScreen> {
     'Acne',
   ];
 
+  static const Map<String, String> _amharicSymptoms = {
+    'Cramps': 'የሆድ ቁርጠት',
+    'Headache': 'ራስ ምታት',
+    'Mood Swings': 'ስሜት ለውጥ',
+    'Bloating': 'ሆድ ማበጥ',
+    'Fatigue': 'ድካም',
+    'Nausea': 'ማቅለሽለሽ',
+    'Back Pain': 'የጀርባ ሕመም',
+    'Breast Tenderness': 'ጡት ሕመም',
+    'Spotting': 'ትንሽ ደም',
+    'Acne': 'ቅርጫ',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -337,7 +350,9 @@ class _LoggingScreenState extends State<LoggingScreen> {
                             ),
                           ),
                           child: Text(
-                            s,
+                            isAmharic
+                                ? (_amharicSymptoms[s] ?? s)
+                                : s,
                             style: GoogleFonts.poppins(
                               fontSize: AppFonts.captionL,
                               fontWeight: FontWeight.w500,
