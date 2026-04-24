@@ -6,9 +6,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/utils/cycle_calculator.dart';
+import '../../../core/utils/ethiopian_calendar.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../models/cycle_model.dart';
 import '../../../providers/cycle_provider.dart';
+import '../../../providers/language_provider.dart';
 import '../logging/logging_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -28,6 +30,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final cycles = context.watch<CycleProvider>();
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
     final bg = isDark ? AppColors.darkBackground : AppColors.lightBackground;
     final cardBg =
         isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground;
@@ -74,22 +78,43 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   _selectedDay = selected;
                   _focusedDay = focused;
                 });
-                _showDayDetails(context, selected, cycles, l10n);
+                _showDayDetails(context, selected, cycles, l10n, isAmharic);
               },
               onFormatChanged: (format) =>
                   setState(() => _calendarFormat = format),
               onPageChanged: (focused) => setState(() => _focusedDay = focused),
               calendarBuilders: CalendarBuilders(
                 defaultBuilder: (ctx, day, focusedDay) =>
-                    _buildDayCell(ctx, day, cycles, false),
+                    _buildDayCell(ctx, day, cycles, false,
+                        isAmharic: isAmharic),
                 selectedBuilder: (ctx, day, focusedDay) =>
-                    _buildDayCell(ctx, day, cycles, true),
+                    _buildDayCell(ctx, day, cycles, true,
+                        isAmharic: isAmharic),
                 todayBuilder: (ctx, day, focusedDay) =>
-                    _buildDayCell(ctx, day, cycles, false, isToday: true),
+                    _buildDayCell(ctx, day, cycles, false,
+                        isToday: true, isAmharic: isAmharic),
+                // Amharic day-of-week labels
+                dowBuilder: isAmharic
+                    ? (ctx, day) => Center(
+                          child: Text(
+                            EthiopianCalendar.dayNameShort(day.weekday),
+                            style: GoogleFonts.poppins(
+                              fontSize: AppFonts.captionL,
+                              color: day.weekday == DateTime.saturday ||
+                                      day.weekday == DateTime.sunday
+                                  ? AppColors.primary
+                                  : AppColors.lightTextSecondary,
+                            ),
+                          ),
+                        )
+                    : null,
               ),
               headerStyle: HeaderStyle(
                 formatButtonVisible: true,
                 titleCentered: true,
+                titleTextFormatter: isAmharic
+                    ? (date, _) => EthiopianCalendar.headerText(date)
+                    : null,
                 titleTextStyle: GoogleFonts.poppins(
                   fontSize: AppFonts.titleM,
                   fontWeight: FontWeight.w600,
@@ -175,6 +200,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     CycleProvider cycles,
     bool isSelected, {
     bool isToday = false,
+    bool isAmharic = false,
   }) {
     final type = _getDayType(day, cycles);
     Color? bgColor;
@@ -225,15 +251,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   : null,
             ),
       child: Center(
-        child: Text(
-          '${day.day}',
-          style: GoogleFonts.poppins(
-            fontSize: AppFonts.captionL,
-            fontWeight:
-                isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
-            color: isToday && bgColor == null ? AppColors.primary : textColor,
-          ),
-        ),
+        child: isAmharic
+            ? _EthiopianDayLabel(
+                day: day,
+                textColor:
+                    isToday && bgColor == null ? AppColors.primary : textColor,
+                bold: isToday || isSelected,
+              )
+            : Text(
+                '${day.day}',
+                style: GoogleFonts.poppins(
+                  fontSize: AppFonts.captionL,
+                  fontWeight:
+                      isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
+                  color:
+                      isToday && bgColor == null ? AppColors.primary : textColor,
+                ),
+              ),
       ),
     );
   }
@@ -276,6 +310,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     DateTime day,
     CycleProvider cycles,
     AppLocalizations l10n,
+    bool isAmharic,
   ) {
     final type = _getDayType(day, cycles);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -307,7 +342,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                _formatDate(day),
+                isAmharic
+                    ? EthiopianCalendar.formatDate(day)
+                    : _formatDate(day),
                 style: GoogleFonts.poppins(
                   fontSize: AppFonts.titleL,
                   fontWeight: FontWeight.w700,
@@ -500,6 +537,46 @@ class _DayDetailPanel extends StatelessWidget {
                       GoogleFonts.poppins(color: AppColors.lightTextSecondary)),
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// Displays the Ethiopian day number inside a calendar cell.
+/// Shows the ET day (large) and the Gregorian day (small, below) for context.
+class _EthiopianDayLabel extends StatelessWidget {
+  final DateTime day;
+  final Color textColor;
+  final bool bold;
+
+  const _EthiopianDayLabel({
+    required this.day,
+    required this.textColor,
+    required this.bold,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final et = EthiopianCalendar.toEthiopian(day);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '${et.day}',
+          style: GoogleFonts.poppins(
+            fontSize: AppFonts.captionL,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            color: textColor,
+          ),
+        ),
+        Text(
+          '${day.day}',
+          style: TextStyle(
+            fontSize: 8,
+            color: textColor.withOpacity(0.55),
+            height: 1.0,
+          ),
+        ),
       ],
     );
   }

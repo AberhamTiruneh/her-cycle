@@ -1,3 +1,5 @@
+import 'ethiopian_calendar.dart';
+
 class DateUtils {
   /// Format date to a readable string
   static String formatDate(DateTime date) {
@@ -89,5 +91,24 @@ class DateUtils {
       age--;
     }
     return age;
+  }
+
+  /// Format date using Ethiopian calendar (for Amharic locale).
+  /// e.g. "ሚያዝያ 15, 2018"
+  static String formatDateEthiopian(DateTime date) {
+    return EthiopianCalendar.formatDate(date);
+  }
+
+  /// Short Ethiopian date format, e.g. "ሚያዝያ 15"
+  static String formatDateShortEthiopian(DateTime date) {
+    return EthiopianCalendar.formatDateShort(date);
+  }
+
+  /// Locale-aware date format: returns Ethiopian format for Amharic,
+  /// Gregorian otherwise.
+  static String formatDateLocalized(DateTime date,
+      {String languageCode = 'en'}) {
+    if (languageCode == 'am') return formatDateEthiopian(date);
+    return formatDate(date);
   }
 }
