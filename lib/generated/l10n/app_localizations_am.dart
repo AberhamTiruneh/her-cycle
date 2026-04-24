@@ -157,7 +157,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get ovulation => 'ውፃት';
   @override
-  String get fertileWindow => 'ፈርቲል ወቅት';
+  String get fertileWindow => 'የመጸነሻ ውቅት';
   @override
   String get ovulationWindow => 'Ovulation ወቅት';
 
