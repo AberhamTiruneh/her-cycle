@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/utils/ethiopian_calendar.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../models/cycle_model.dart';
+import '../../../core/utils/cycle_calculator.dart';
 import '../../../providers/cycle_provider.dart';
+import '../../../providers/language_provider.dart';
+import '../../../services/notification_service.dart';
 
 class LoggingScreen extends StatefulWidget {
   final CycleData? existing;
@@ -37,6 +43,19 @@ class _LoggingScreenState extends State<LoggingScreen> {
     'Acne',
   ];
 
+  static const Map<String, String> _amharicSymptoms = {
+    'Cramps': 'የሆድ ቁርጠት',
+    'Headache': 'ራስ ምታት',
+    'Mood Swings': 'ስሜት ለውጥ',
+    'Bloating': 'የሆድ መነፋት',
+    'Fatigue': 'ድካም',
+    'Nausea': 'ማቅለሽለሽ',
+    'Back Pain': 'የጀርባ ሕመም',
+    'Breast Tenderness': 'ጡት ሕመም',
+    'Spotting': 'ትንሽ ደም መፍሰስ',
+    'Acne': 'ቡግር',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +76,8 @@ class _LoggingScreenState extends State<LoggingScreen> {
   }
 
   Future<void> _pickDate({required bool isStart}) async {
+    final isAmharic =
+        context.read<LanguageProvider>().currentLanguage == 'am';
     final initial = isStart
         ? (_startDate ?? DateTime.now())
         : (_endDate ?? _startDate ?? DateTime.now());
@@ -65,6 +86,30 @@ class _LoggingScreenState extends State<LoggingScreen> {
         ? (_endDate ?? DateTime.now().add(const Duration(days: 365)))
         : DateTime.now().add(const Duration(days: 365));
 
+    if (isAmharic) {
+      final picked = await showDialog<DateTime>(
+        context: context,
+        builder: (ctx) => _EthiopianDatePickerDialog(
+          initialDate: initial,
+          firstDate: first,
+          lastDate: last,
+        ),
+      );
+      if (picked != null && mounted) {
+        setState(() {
+          if (isStart) {
+            _startDate = picked;
+            if (_endDate != null && _endDate!.isBefore(picked)) {
+              _endDate = null;
+            }
+          } else {
+            _endDate = picked;
+          }
+        });
+      }
+      return;
+    }
+
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -72,7 +117,7 @@ class _LoggingScreenState extends State<LoggingScreen> {
       lastDate: last,
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(
+          colorScheme: const ColorScheme.light(
             primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Colors.white,
@@ -82,7 +127,7 @@ class _LoggingScreenState extends State<LoggingScreen> {
         child: child!,
       ),
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         if (isStart) {
           _startDate = picked;
@@ -126,6 +171,17 @@ class _LoggingScreenState extends State<LoggingScreen> {
       );
       await provider.saveCycle(cycleData);
 
+      // Schedule notifications based on updated cycle data
+      final nextPeriod = CycleCalculator.calculateNextPeriod(
+          cycleData.startDate, provider.cycleLength);
+      final ovulation = CycleCalculator.calculateOvulationDate(
+          cycleData.startDate, provider.cycleLength);
+      unawaited(NotificationService.instance.rescheduleAllNotifications(
+        nextPeriod: nextPeriod,
+        ovulationDate: ovulation,
+        daysBefore: 2,
+      ));
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -153,6 +209,8 @@ class _LoggingScreenState extends State<LoggingScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
     final bg = isDark ? AppColors.darkBackground : AppColors.lightBackground;
     final cardBg =
         isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground;
@@ -203,6 +261,7 @@ class _LoggingScreenState extends State<LoggingScreen> {
                           date: _startDate,
                           onTap: () => _pickDate(isStart: true),
                           isDark: isDark,
+                          isAmharic: isAmharic,
                         ),
                       ),
                       const SizedBox(width: AppSizes.spacingS),
@@ -212,6 +271,7 @@ class _LoggingScreenState extends State<LoggingScreen> {
                           date: _endDate,
                           onTap: () => _pickDate(isStart: false),
                           isDark: isDark,
+                          isAmharic: isAmharic,
                         ),
                       ),
                     ],
@@ -305,7 +365,9 @@ class _LoggingScreenState extends State<LoggingScreen> {
                             ),
                           ),
                           child: Text(
-                            s,
+                            isAmharic
+                                ? (_amharicSymptoms[s] ?? s)
+                                : s,
                             style: GoogleFonts.poppins(
                               fontSize: AppFonts.captionL,
                               fontWeight: FontWeight.w500,
@@ -474,12 +536,14 @@ class _DatePicker extends StatelessWidget {
   final DateTime? date;
   final VoidCallback onTap;
   final bool isDark;
+  final bool isAmharic;
 
   const _DatePicker({
     required this.label,
     required this.date,
     required this.onTap,
     required this.isDark,
+    this.isAmharic = false,
   });
 
   @override
@@ -525,7 +589,9 @@ class _DatePicker extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   date != null
-                      ? '${date!.day}/${date!.month}/${date!.year}'
+                      ? (isAmharic
+                          ? EthiopianCalendar.formatDateShort(date!)
+                          : '${date!.day}/${date!.month}/${date!.year}')
                       : 'Select',
                   style: GoogleFonts.poppins(
                     fontSize: AppFonts.bodyS,
@@ -582,6 +648,237 @@ class _FlowChip extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Ethiopian Date Picker Dialog ────────────────────────────────────────────
+/// A full-month grid picker that shows Ethiopian calendar dates.
+/// The user navigates ET months; tapping a day returns the Gregorian DateTime.
+class _EthiopianDatePickerDialog extends StatefulWidget {
+  final DateTime initialDate;
+  final DateTime firstDate;
+  final DateTime lastDate;
+
+  const _EthiopianDatePickerDialog({
+    required this.initialDate,
+    required this.firstDate,
+    required this.lastDate,
+  });
+
+  @override
+  State<_EthiopianDatePickerDialog> createState() =>
+      _EthiopianDatePickerDialogState();
+}
+
+class _EthiopianDatePickerDialogState
+    extends State<_EthiopianDatePickerDialog> {
+  /// Gregorian date that corresponds to **ET day 1** of the currently
+  /// displayed ET month. Since ET months are exactly 30 days (5/6 for Pagume),
+  /// ET day N = _etMonthStart + (N-1) days. This eliminates the need for any
+  /// search and prevents the "all days selected" bug caused by fallback values.
+  late DateTime _etMonthStart;
+  DateTime? _selected;
+
+  static const _months = [
+    '', 'መስከረም', 'ጥቅምት', 'ህዳር', 'ታህሳስ', 'ጥር',
+    'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜ',
+  ];
+  static const _dow = ['ሰ', 'ማ', 'ረ', 'ሐ', 'ዓ', 'ቅ', 'እ'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialDate;
+    // Anchor to the Gregorian date of ET day 1 for initialDate's ET month.
+    final et = EthiopianCalendar.toEthiopian(widget.initialDate);
+    _etMonthStart = DateTime(
+      widget.initialDate.year,
+      widget.initialDate.month,
+      widget.initialDate.day,
+    ).subtract(Duration(days: et.day - 1));
+  }
+
+  EthiopianDate get _focusedET =>
+      EthiopianCalendar.toEthiopian(_etMonthStart);
+
+  int get _daysInFocusedMonth {
+    if (_focusedET.month == 13) {
+      return (_focusedET.year % 4 == 3) ? 6 : 5;
+    }
+    return 30;
+  }
+
+  /// ET day [etDay] → Gregorian date. O(1) — no search needed.
+  DateTime _gregorianForEtDay(int etDay) =>
+      _etMonthStart.add(Duration(days: etDay - 1));
+
+  void _prevMonth() {
+    setState(() {
+      // Step back 1 day to land in the previous ET month, then find its day 1.
+      final dayInPrevMonth =
+          _etMonthStart.subtract(const Duration(days: 1));
+      final et = EthiopianCalendar.toEthiopian(dayInPrevMonth);
+      _etMonthStart =
+          dayInPrevMonth.subtract(Duration(days: et.day - 1));
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _etMonthStart =
+          _etMonthStart.add(Duration(days: _daysInFocusedMonth));
+    });
+  }
+
+  bool _isSelected(DateTime greg) =>
+      _selected != null &&
+      greg.year == _selected!.year &&
+      greg.month == _selected!.month &&
+      greg.day == _selected!.day;
+
+  bool _isDisabled(DateTime greg) {
+    final d = DateTime(greg.year, greg.month, greg.day);
+    return d.isBefore(DateTime(widget.firstDate.year, widget.firstDate.month,
+            widget.firstDate.day)) ||
+        d.isAfter(DateTime(
+            widget.lastDate.year, widget.lastDate.month, widget.lastDate.day));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final et = _focusedET;
+    final days = _daysInFocusedMonth;
+    // _etMonthStart IS ET day 1, so its weekday gives us the leading blanks.
+    final leadingBlanks = _etMonthStart.weekday - 1; // Mon=0 … Sun=6
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: AppColors.primary),
+                  onPressed: _prevMonth,
+                ),
+                Text(
+                  '${_months[et.month]}  ${et.year}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right,
+                      color: AppColors.primary),
+                  onPressed: _nextMonth,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Day-of-week row
+            Row(
+              children: _dow
+                  .map((d) => Expanded(
+                        child: Center(
+                          child: Text(d,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary)),
+                        ),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 4),
+            // Day grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 4,
+                childAspectRatio: 1,
+              ),
+              itemCount: leadingBlanks + days,
+              itemBuilder: (_, i) {
+                if (i < leadingBlanks) return const SizedBox.shrink();
+                final etDay = i - leadingBlanks + 1;
+                final greg = _gregorianForEtDay(etDay);
+                final disabled = _isDisabled(greg);
+                final selected = _isSelected(greg);
+                return GestureDetector(
+                  onTap: disabled
+                      ? null
+                      : () => setState(() => _selected = greg),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.primary
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$etDay',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: selected
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                          color: disabled
+                              ? Colors.grey[400]
+                              : selected
+                                  ? Colors.white
+                                  : Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.lightTextPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('ሰርዝ',
+                      style: GoogleFonts.poppins(color: AppColors.primary)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _selected == null
+                      ? null
+                      : () => Navigator.pop(context, _selected),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text('እሺ',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

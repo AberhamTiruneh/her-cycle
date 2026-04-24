@@ -99,7 +99,9 @@ class _AuthScreenState extends State<AuthScreen>
     );
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
+      final auth = context.read<AuthProvider>();
+      final dest = auth.isFirstLaunch ? '/onboarding' : '/home';
+      Navigator.of(context).pushNamedAndRemoveUntil(dest, (_) => false);
     } else {
       setState(() => _formError = auth.errorMessage ?? 'Registration failed');
     }
@@ -196,6 +198,10 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Widget _buildHeader() {
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
+    final displayName =
+        isAmharic ? 'አበባየ' : AppStrings.appName;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSizes.paddingXL,
@@ -228,7 +234,7 @@ class _AuthScreenState extends State<AuthScreen>
           ),
           const SizedBox(height: AppSizes.spacingM),
           Text(
-            AppStrings.appName,
+            displayName,
             style: const TextStyle(
               fontSize: AppFonts.headingL,
               fontWeight: FontWeight.bold,

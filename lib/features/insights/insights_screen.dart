@@ -6,10 +6,25 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/utils/cycle_calculator.dart';
+import '../../../core/utils/ethiopian_calendar.dart';
 import '../../../core/utils/health_tips.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../models/cycle_model.dart';
 import '../../../providers/cycle_provider.dart';
+import '../../../providers/language_provider.dart';
+
+const Map<String, String> _kAmharicSymptoms = {
+  'Cramps': 'የሆድ ቁርጠት',
+  'Headache': 'ራስ ምታት',
+  'Mood Swings': 'ስሜት ለውጥ',
+  'Bloating': 'የሆድ መነፋት',
+  'Fatigue': 'ድካም',
+  'Nausea': 'ማቅለሽለሽ',
+  'Back Pain': 'የጀርባ ሕመም',
+  'Breast Tenderness': 'ጡት ሕመም',
+  'Spotting': 'ትንሽ ደም መፍሰስ',
+  'Acne': 'ቡግር',
+};
 
 class InsightsScreen extends StatelessWidget {
   const InsightsScreen({Key? key}) : super(key: key);
@@ -116,6 +131,8 @@ class _InsightsBody extends StatelessWidget {
         isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground;
     final textPrimary =
         isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
 
     // Summary stats
     final totalCycles = cycles.cycles.length;
@@ -369,7 +386,9 @@ class _InsightsBody extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  e.value.key,
+                                  isAmharic
+                                      ? (_kAmharicSymptoms[e.value.key] ?? e.value.key)
+                                      : e.value.key,
                                   style: GoogleFonts.poppins(
                                       fontSize: 10, color: textPrimary),
                                 ),
@@ -394,6 +413,8 @@ class _InsightsBody extends StatelessWidget {
             cardBg: cardBg,
             textPrimary: textPrimary,
             l10n: l10n,
+            isAmharic:
+                context.watch<LanguageProvider>().currentLanguage == 'am',
           ),
           const SizedBox(height: AppSizes.spacingM),
 
@@ -556,6 +577,7 @@ class _FertileCard extends StatelessWidget {
   final Color cardBg;
   final Color textPrimary;
   final AppLocalizations l10n;
+  final bool isAmharic;
 
   const _FertileCard({
     required this.nextPeriod,
@@ -565,9 +587,12 @@ class _FertileCard extends StatelessWidget {
     required this.cardBg,
     required this.textPrimary,
     required this.l10n,
+    this.isAmharic = false,
   });
 
-  String _fmt(DateTime d) => '${d.day}/${d.month}/${d.year}';
+  String _fmt(DateTime d) => isAmharic
+      ? EthiopianCalendar.formatDate(d)
+      : '${d.day}/${d.month}/${d.year}';
 
   @override
   Widget build(BuildContext context) {

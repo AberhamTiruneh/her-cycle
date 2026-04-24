@@ -6,11 +6,13 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/utils/cycle_calculator.dart';
+import '../../../core/utils/ethiopian_calendar.dart';
 import '../../../core/utils/health_tips.dart';
 import '../../../core/widgets/loading_shimmer.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/cycle_provider.dart';
+import '../../../providers/language_provider.dart';
 import '../profile/screens/profile_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../insights/insights_screen.dart';
@@ -243,6 +245,10 @@ class _HomeBody extends StatelessWidget {
                       fertileEnd: fertileWindow?['end'],
                       l10n: l10n,
                       isDark: isDark,
+                      isAmharic: context
+                              .watch<LanguageProvider>()
+                              .currentLanguage ==
+                          'am',
                     ),
                     const SizedBox(height: AppSizes.spacingM),
 
@@ -583,6 +589,7 @@ class _UpcomingEvents extends StatelessWidget {
   final DateTime? fertileEnd;
   final AppLocalizations l10n;
   final bool isDark;
+  final bool isAmharic;
 
   const _UpcomingEvents({
     required this.nextPeriod,
@@ -591,6 +598,7 @@ class _UpcomingEvents extends StatelessWidget {
     required this.fertileEnd,
     required this.l10n,
     required this.isDark,
+    this.isAmharic = false,
   });
 
   @override
@@ -615,6 +623,7 @@ class _UpcomingEvents extends StatelessWidget {
             label: l10n.nextPeriod,
             date: nextPeriod!,
             isDark: isDark,
+            isAmharic: isAmharic,
           ),
         if (ovulation != null)
           _EventTile(
@@ -623,22 +632,25 @@ class _UpcomingEvents extends StatelessWidget {
             label: l10n.ovulation,
             date: ovulation!,
             isDark: isDark,
+            isAmharic: isAmharic,
           ),
         if (fertileStart != null && fertileEnd != null)
           _EventTile(
             icon: Icons.favorite_rounded,
             color: AppColors.secondary,
             label:
-                '${l10n.fertileWindow}: ${_fmt(fertileStart!)} – ${_fmt(fertileEnd!)}',
+                '${l10n.fertileWindow}: ${_fmt(fertileStart!, isAmharic)} – ${_fmt(fertileEnd!, isAmharic)}',
             date: fertileStart!,
             isDark: isDark,
+            isAmharic: isAmharic,
             showDate: false,
           ),
       ],
     );
   }
 
-  String _fmt(DateTime d) => '${d.month}/${d.day}';
+  String _fmt(DateTime d, [bool isAmharic = false]) =>
+      isAmharic ? EthiopianCalendar.formatDateShort(d) : '${d.month}/${d.day}';
 }
 
 class _EventTile extends StatelessWidget {
@@ -648,6 +660,7 @@ class _EventTile extends StatelessWidget {
   final DateTime date;
   final bool isDark;
   final bool showDate;
+  final bool isAmharic;
 
   const _EventTile({
     required this.icon,
@@ -656,6 +669,7 @@ class _EventTile extends StatelessWidget {
     required this.date,
     required this.isDark,
     this.showDate = true,
+    this.isAmharic = false,
   });
 
   @override
@@ -700,7 +714,9 @@ class _EventTile extends StatelessWidget {
           ),
           if (showDate)
             Text(
-              '${date.month}/${date.day}',
+              isAmharic
+                  ? EthiopianCalendar.formatDateShort(date)
+                  : '${date.month}/${date.day}',
               style: GoogleFonts.poppins(
                 fontSize: AppFonts.bodyS,
                 color: color,
@@ -721,9 +737,24 @@ class _RecentSymptoms extends StatelessWidget {
 
   const _RecentSymptoms({required this.symptoms, required this.l10n});
 
+  static const Map<String, String> _amharicSymptoms = {
+    'Cramps': 'የሆድ ቁርጠት',
+    'Headache': 'ራስ ምታት',
+    'Mood Swings': 'ስሜት ለውጥ',
+    'Bloating': 'የሆድ መነፋት',
+    'Fatigue': 'ድካም',
+    'Nausea': 'ማቅለሽለሽ',
+    'Back Pain': 'የጀርባ ሕመም',
+    'Breast Tenderness': 'ጡት ሕመም',
+    'Spotting': 'ትንሽ ደም መፍሰስ',
+    'Acne': 'ቡግር',
+  };
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -744,7 +775,8 @@ class _RecentSymptoms extends StatelessWidget {
               .take(6)
               .map(
                 (s) => Chip(
-                  label: Text(s,
+                  label: Text(
+                      isAmharic ? (_amharicSymptoms[s] ?? s) : s,
                       style: GoogleFonts.poppins(
                           fontSize: AppFonts.captionL,
                           color: AppColors.primary)),

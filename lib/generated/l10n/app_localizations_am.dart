@@ -4,7 +4,7 @@ class AppLocalizationsAm extends AppLocalizations {
   AppLocalizationsAm() : super('am');
 
   @override
-  String get appName => 'HER_CYCLE';
+  String get appName => 'አበባየ';
   @override
   String get appTagline => 'ዑደትዎን ይከታተሉ፣ ሰውነትዎን ያውቁ';
   @override
@@ -12,52 +12,52 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get continueText => 'ቀጥል';
   @override
-  String get save => 'አስቀምጥ';
+  String get save => 'ያስቀምጡ';
   @override
-  String get cancel => 'ሰርዝ';
+  String get cancel => 'አጥፋ';
   @override
-  String get delete => 'አጥፋ';
+  String get delete => 'መደምሰስ';
   @override
   String get settings => 'ቅንብሮች';
   @override
-  String get back => 'ተመለስ';
+  String get back => 'ተመሉስ';
   @override
   String get done => 'ተጠናቅቋል';
   @override
   String get loading => 'በመጫን ላይ...';
   @override
-  String get error => 'ስህተት ተፈጥሯል';
+  String get error => 'አንዳንድ ነገር ሲሳሳት';
   @override
-  String get success => 'ተሳክቷል';
+  String get success => 'ስኬት';
   @override
   String get logout => 'ውጣ';
   @override
-  String get confirm => 'አረጋግጥ';
+  String get confirm => 'ያረጋግጡ';
   @override
-  String get edit => 'አርትዕ';
+  String get edit => 'ያስተካክሉ';
   @override
-  String get add => 'ጨምር';
+  String get add => 'ይጨምሩ';
   @override
-  String get next => 'ቀጣይ';
+  String get next => 'ቀጥል';
   @override
-  String get retry => 'እንደገና ሞክር';
+  String get retry => 'ድጋሜ ሞክር';
 
   @override
   String get login => 'ግባ';
   @override
-  String get signup => 'ተመዝገብ';
+  String get signup => 'ይመዝገቡ';
   @override
   String get email => 'ኢሜይል';
   @override
-  String get password => 'የሚስጥር ቁጥር';
+  String get password => 'የሚስጥር ቃል';
   @override
-  String get confirmPassword => 'የሚስጥር ቁጥር አረጋግጥ';
+  String get confirmPassword => 'የሚስጥር ቃል ያረጋግጡ';
   @override
-  String get forgotPassword => 'የሚስጥር ቁጥርዎን ረሱ?';
+  String get forgotPassword => 'ቃላትዎን ረሱ?';
   @override
-  String get rememberMe => 'አስታውሰኝ';
+  String get rememberMe => 'አስታውሱኝ';
   @override
-  String get signInWithGoogle => 'በGoogle ግባ';
+  String get signInWithGoogle => 'ከGoogle ጋር ይግቡ';
   @override
   String get deleteAccount => 'መለያ አጥፋ';
   @override
@@ -74,7 +74,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get onboardingTitle3 => 'ማሳወቂያዎችን ያግኙ';
   @override
-  String get onboardingSubtitle3 => 'አስፈላጊ ማሳወቂያዎችን አያምልጡ';
+  String get onboardingSubtitle3 => 'ከቁልፍ ማስታወሻዎች ፀህ አያድርሱ';
   @override
   String get getStarted => 'ጀምር';
   @override
@@ -85,24 +85,24 @@ class AppLocalizationsAm extends AppLocalizations {
   String get understandYourBody => 'ሰውነትዎን በደንብ ይረዱ';
 
   @override
-  String get home => 'መነሻ';
+  String get home => 'ቤት';
   @override
   String get calendar => 'የቀን መቁጠሪያ';
   @override
-  String get insights => 'ትንታኔዎች';
+  String get insights => 'ግንዛቤ';
   @override
-  String get profile => 'መገለጫ';
+  String get profile => 'ዝርዝር';
   @override
   String get myProfile => 'የኔ መገለጫ';
 
   @override
   String get periodTracker => 'የወር አበባ መከታተያ';
   @override
-  String get startDate => 'የጀምር ቀን';
+  String get startDate => 'የጀመረበት ቀን';
   @override
   String get endDate => 'የማብቂያ ቀን';
   @override
-  String get flowIntensity => 'የፍሰት ጥንካሬ';
+  String get flowIntensity => 'የፍሰት መጠን';
   @override
   String get light => 'ቀላል';
   @override
@@ -120,11 +120,11 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get days => 'ቀናት';
   @override
-  String get currentCycle => 'የአሁኑ ዑደት';
+  String get currentCycle => 'ያሁኑ ዑደት';
   @override
   String get cycleStats => 'የዑደት ስታቲስቲክስ';
   @override
-  String get period => 'የወር አበባ';
+  String get period => 'ወር';
   @override
   String get averageCycle => 'አማካይ ዑደት';
   @override
@@ -138,7 +138,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get startLogging => 'ዑደትዎን መመዝገብ ይጀምሩ';
   @override
-  String get daysUntilPeriod => 'ቀጣይ ወር አበባ ድረስ ያሉ ቀናት';
+  String get daysUntilPeriod => 'ወር ድረስ ቀናት';
   @override
   String get hello => 'ሰላም';
 
@@ -153,11 +153,11 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get lutealPhase => 'Luteal ደረጃ';
   @override
-  String get fertile => 'ፈርቲል ቀናት';
+  String get fertile => 'ፍላጎትር ቀናት';
   @override
-  String get ovulation => 'Ovulation';
+  String get ovulation => 'ውፃት';
   @override
-  String get fertileWindow => 'ፈርቲል ወቅት';
+  String get fertileWindow => 'የመጸነሻ ውቅት';
   @override
   String get ovulationWindow => 'Ovulation ወቅት';
 
@@ -168,9 +168,9 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get headache => 'ራስ ምታት';
   @override
-  String get mood => 'የስሜት ለውጦች';
+  String get mood => 'ስሜት';
   @override
-  String get bloating => 'ሆድ ማበጥ';
+  String get bloating => 'የሆድ መነፋት';
   @override
   String get fatigue => 'ድካም';
   @override
@@ -178,12 +178,12 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get logging => 'ምዝገባ';
   @override
-  String get logSymptom => 'ምልክት ይጻፉ';
+  String get logSymptom => 'ምልክትን ይመዝግቡ';
 
   @override
-  String get notifications => 'ማሳወቂያዎች';
+  String get notifications => 'ማስታወሻዎች';
   @override
-  String get enableNotifications => 'ማሳወቂያዎችን አንቃ';
+  String get enableNotifications => 'ማሳወቂያዎችን አብራ';
   @override
   String get periodReminder => 'የወር አበባ ማስታወሻ';
   @override
@@ -196,7 +196,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get analysis => 'ትንታኔ';
   @override
-  String get predictionsData => 'ትንበያዎች እና ዳታ';
+  String get predictionsData => 'ትንበያ እና ውሂብ';
 
   @override
   String get language => 'ቋንቋ';

@@ -1,6 +1,6 @@
 class AppStrings {
   // App
-  static const String appName = 'HER_CYCLE';
+  static const String appName = 'Her Cycle';
   static const String appTagline = 'Track Your Cycle, Know Your Body';
 
   // Onboarding

@@ -143,25 +143,33 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(AppSizes.paddingL),
-              child: SizedBox(
-                width: double.infinity,
-                height: AppSizes.buttonHeightM,
-                child: ElevatedButton(
-                  onPressed: _apply,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusM),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.paddingL,
+                  AppSizes.paddingS,
+                  AppSizes.paddingL,
+                  AppSizes.paddingL,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: AppSizes.buttonHeightL,
+                  child: ElevatedButton(
+                    onPressed: _apply,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'Apply',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w600,
+                    child: Text(
+                      'Apply',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
