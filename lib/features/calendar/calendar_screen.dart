@@ -24,6 +24,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
+  late DateTime _etMonthStart;
+
+  @override
+  void initState() {
+    super.initState();
+    _etMonthStart = _computeEtMonthStart(DateTime.now());
+  }
+
+  DateTime _computeEtMonthStart(DateTime gregorian) {
+    final et = EthiopianCalendar.toEthiopian(gregorian);
+    return DateTime(gregorian.year, gregorian.month, gregorian.day)
+        .subtract(Duration(days: et.day - 1));
+  }
+
+  void _prevEtMonth() {
+    setState(() {
+      final dayBefore = _etMonthStart.subtract(const Duration(days: 1));
+      _etMonthStart = _computeEtMonthStart(dayBefore);
+      _focusedDay = _etMonthStart;
+    });
+  }
+
+  void _nextEtMonth() {
+    setState(() {
+      final et = EthiopianCalendar.toEthiopian(_etMonthStart);
+      final daysInMonth = et.month < 13 ? 30 : ((et.year % 4 == 3) ? 6 : 5);
+      _etMonthStart = _etMonthStart.add(Duration(days: daysInMonth));
+      _focusedDay = _etMonthStart;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +86,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             onPressed: () => setState(() {
               _focusedDay = DateTime.now();
               _selectedDay = DateTime.now();
+              _etMonthStart = _computeEtMonthStart(DateTime.now());
             }),
             tooltip: 'Today',
           ),
@@ -65,83 +96,85 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Column(
         children: [
           // Calendar Widget
-          Container(
-            color: cardBg,
-            child: TableCalendar(
-              firstDay: DateTime.utc(2020, 1, 1),
-              lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              onDaySelected: (selected, focused) {
+          if (isAmharic)
+            _EthiopianCalendarGrid(
+              etMonthStart: _etMonthStart,
+              selectedDay: _selectedDay,
+              onDaySelected: (day) {
                 setState(() {
-                  _selectedDay = selected;
-                  _focusedDay = focused;
+                  _selectedDay = day;
+                  _focusedDay = day;
                 });
-                _showDayDetails(context, selected, cycles, l10n, isAmharic);
+                _showDayDetails(context, day, cycles, l10n, isAmharic);
               },
-              onFormatChanged: (format) =>
-                  setState(() => _calendarFormat = format),
-              onPageChanged: (focused) => setState(() => _focusedDay = focused),
-              calendarBuilders: CalendarBuilders(
-                defaultBuilder: (ctx, day, focusedDay) =>
-                    _buildDayCell(ctx, day, cycles, false,
-                        isAmharic: isAmharic),
-                selectedBuilder: (ctx, day, focusedDay) =>
-                    _buildDayCell(ctx, day, cycles, true,
-                        isAmharic: isAmharic),
-                todayBuilder: (ctx, day, focusedDay) =>
-                    _buildDayCell(ctx, day, cycles, false,
-                        isToday: true, isAmharic: isAmharic),
-                // Amharic day-of-week labels
-                dowBuilder: isAmharic
-                    ? (ctx, day) => Center(
-                          child: Text(
-                            EthiopianCalendar.dayNameShort(day.weekday),
-                            style: GoogleFonts.poppins(
-                              fontSize: AppFonts.captionL,
-                              color: day.weekday == DateTime.saturday ||
-                                      day.weekday == DateTime.sunday
-                                  ? AppColors.primary
-                                  : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                        )
-                    : null,
-              ),
-              headerStyle: HeaderStyle(
-                formatButtonVisible: true,
-                titleCentered: true,
-                titleTextFormatter: isAmharic
-                    ? (date, _) => EthiopianCalendar.headerText(date)
-                    : null,
-                titleTextStyle: GoogleFonts.poppins(
-                  fontSize: AppFonts.titleM,
-                  fontWeight: FontWeight.w600,
-                  color: textPrimary,
+              onPrevMonth: _prevEtMonth,
+              onNextMonth: _nextEtMonth,
+              getDayType: (day) => _getDayType(day, cycles),
+              isDark: isDark,
+              cardBg: cardBg,
+              textPrimary: textPrimary,
+            )
+          else
+            Container(
+              color: cardBg,
+              child: TableCalendar(
+                firstDay: DateTime.utc(2020, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                onDaySelected: (selected, focused) {
+                  setState(() {
+                    _selectedDay = selected;
+                    _focusedDay = focused;
+                  });
+                  _showDayDetails(context, selected, cycles, l10n, false);
+                },
+                onFormatChanged: (format) =>
+                    setState(() => _calendarFormat = format),
+                onPageChanged: (focused) =>
+                    setState(() => _focusedDay = focused),
+                calendarBuilders: CalendarBuilders(
+                  defaultBuilder: (ctx, day, focusedDay) =>
+                      _buildDayCell(ctx, day, cycles, false,
+                          isAmharic: false),
+                  selectedBuilder: (ctx, day, focusedDay) =>
+                      _buildDayCell(ctx, day, cycles, true,
+                          isAmharic: false),
+                  todayBuilder: (ctx, day, focusedDay) =>
+                      _buildDayCell(ctx, day, cycles, false,
+                          isToday: true, isAmharic: false),
                 ),
-                formatButtonDecoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primary),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusS),
-                ),
-                formatButtonTextStyle: GoogleFonts.poppins(
-                  fontSize: AppFonts.captionL,
-                  color: AppColors.primary,
-                ),
-                leftChevronIcon:
-                    const Icon(Icons.chevron_left, color: AppColors.primary),
-                rightChevronIcon:
-                    const Icon(Icons.chevron_right, color: AppColors.primary),
-              ),
-              daysOfWeekStyle: DaysOfWeekStyle(
-                weekdayStyle: GoogleFonts.poppins(
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: true,
+                  titleCentered: true,
+                  titleTextStyle: GoogleFonts.poppins(
+                    fontSize: AppFonts.titleM,
+                    fontWeight: FontWeight.w600,
+                    color: textPrimary,
+                  ),
+                  formatButtonDecoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primary),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                  ),
+                  formatButtonTextStyle: GoogleFonts.poppins(
                     fontSize: AppFonts.captionL,
-                    color: AppColors.lightTextSecondary),
-                weekendStyle: GoogleFonts.poppins(
-                    fontSize: AppFonts.captionL, color: AppColors.primary),
+                    color: AppColors.primary,
+                  ),
+                  leftChevronIcon:
+                      const Icon(Icons.chevron_left, color: AppColors.primary),
+                  rightChevronIcon:
+                      const Icon(Icons.chevron_right, color: AppColors.primary),
+                ),
+                daysOfWeekStyle: DaysOfWeekStyle(
+                  weekdayStyle: GoogleFonts.poppins(
+                      fontSize: AppFonts.captionL,
+                      color: AppColors.lightTextSecondary),
+                  weekendStyle: GoogleFonts.poppins(
+                      fontSize: AppFonts.captionL, color: AppColors.primary),
+                ),
               ),
             ),
-          ),
 
           // Legend
           Container(
@@ -542,42 +575,258 @@ class _DayDetailPanel extends StatelessWidget {
   }
 }
 
-/// Displays the Ethiopian day number inside a calendar cell.
-/// Shows the ET day (large) and the Gregorian day (small, below) for context.
-class _EthiopianDayLabel extends StatelessWidget {
-  final DateTime day;
-  final Color textColor;
-  final bool bold;
+// ─── Ethiopian Calendar Grid Widget ─────────────────────────────────────────
+//
+// Replaces TableCalendar when Amharic is active.
+// Shows exactly one ET month per page with proper Mon-Sun column layout.
 
-  const _EthiopianDayLabel({
-    required this.day,
-    required this.textColor,
-    required this.bold,
+class _EthiopianCalendarGrid extends StatelessWidget {
+  final DateTime etMonthStart; // Gregorian date of ET day 1 in the focused month
+  final DateTime? selectedDay;
+  final void Function(DateTime) onDaySelected;
+  final VoidCallback onPrevMonth;
+  final VoidCallback onNextMonth;
+  final _DayType Function(DateTime) getDayType;
+  final bool isDark;
+  final Color cardBg;
+  final Color textPrimary;
+
+  const _EthiopianCalendarGrid({
+    required this.etMonthStart,
+    required this.selectedDay,
+    required this.onDaySelected,
+    required this.onPrevMonth,
+    required this.onNextMonth,
+    required this.getDayType,
+    required this.isDark,
+    required this.cardBg,
+    required this.textPrimary,
+  });
+
+  // Monday-first day-of-week labels (col 0 = Mon … col 6 = Sun)
+  static const _dowLabels = [
+    'ሰኞ', 'ማክሰ', 'ረቡዕ', 'ሐሙስ', 'ዓርብ', 'ቅዳሜ', 'እሑድ',
+  ];
+
+  int _daysInEtMonth(int year, int month) {
+    if (month < 13) return 30;
+    // Pagume: 6 days in ET leap year (year % 4 == 3), otherwise 5
+    return (year % 4 == 3) ? 6 : 5;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final et = EthiopianCalendar.toEthiopian(etMonthStart);
+    final daysInMonth = _daysInEtMonth(et.year, et.month);
+    // Monday = weekday 1 → col 0, Sunday = weekday 7 → col 6
+    final startOffset = etMonthStart.weekday - 1;
+
+    return Container(
+      color: cardBg,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Header ──────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.paddingXS,
+              vertical: AppSizes.paddingXS,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon:
+                      const Icon(Icons.chevron_left, color: AppColors.primary),
+                  onPressed: onPrevMonth,
+                  splashRadius: 20,
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      '${EthiopianCalendar.monthName(et.month)}  ${et.year}',
+                      style: GoogleFonts.poppins(
+                        fontSize: AppFonts.titleM,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon:
+                      const Icon(Icons.chevron_right, color: AppColors.primary),
+                  onPressed: onNextMonth,
+                  splashRadius: 20,
+                ),
+              ],
+            ),
+          ),
+
+          // ── Day-of-week row ─────────────────────────────────────────
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppSizes.paddingXS),
+            child: Row(
+              children: List.generate(7, (i) {
+                final isWeekend = i >= 5; // Saturday=5, Sunday=6
+                return Expanded(
+                  child: Center(
+                    child: Text(
+                      _dowLabels[i],
+                      style: GoogleFonts.poppins(
+                        fontSize: AppFonts.captionL,
+                        fontWeight: FontWeight.w600,
+                        color: isWeekend
+                            ? AppColors.primary
+                            : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // ── Day grid ────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSizes.paddingXS,
+              0,
+              AppSizes.paddingXS,
+              AppSizes.paddingS,
+            ),
+            child: GridView.count(
+              crossAxisCount: 7,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 0.95,
+              children: [
+                // Empty leading cells for the start offset
+                ...List.generate(startOffset, (_) => const SizedBox()),
+                // One cell per ET day in the month
+                ...List.generate(daysInMonth, (i) {
+                  final gregorianDay = etMonthStart.add(Duration(days: i));
+                  final etDay = i + 1;
+                  final type = getDayType(gregorianDay);
+                  final isSelected = selectedDay != null &&
+                      isSameDay(selectedDay!, gregorianDay);
+                  final isToday = isSameDay(gregorianDay, DateTime.now());
+                  return _EtDayCell(
+                    etDay: etDay,
+                    gregorianDay: gregorianDay.day,
+                    type: type,
+                    isSelected: isSelected,
+                    isToday: isToday,
+                    isDark: isDark,
+                    onTap: () => onDaySelected(gregorianDay),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EtDayCell extends StatelessWidget {
+  final int etDay;
+  final int gregorianDay;
+  final _DayType type;
+  final bool isSelected;
+  final bool isToday;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _EtDayCell({
+    required this.etDay,
+    required this.gregorianDay,
+    required this.type,
+    required this.isSelected,
+    required this.isToday,
+    required this.isDark,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final et = EthiopianCalendar.toEthiopian(day);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          '${et.day}',
-          style: GoogleFonts.poppins(
-            fontSize: AppFonts.captionL,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: textColor,
-          ),
+    Color? bgColor;
+    Color textColor =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    bool isDashed = false;
+
+    switch (type) {
+      case _DayType.period:
+        bgColor = AppColors.primary;
+        textColor = Colors.white;
+        break;
+      case _DayType.ovulation:
+        bgColor = AppColors.accent;
+        textColor = Colors.white;
+        break;
+      case _DayType.fertile:
+        bgColor = AppColors.secondary.withOpacity(0.6);
+        textColor = Colors.white;
+        break;
+      case _DayType.predicted:
+        bgColor = AppColors.primary.withOpacity(0.2);
+        isDashed = true;
+        break;
+      case _DayType.none:
+        break;
+    }
+
+    if (isSelected && bgColor == null) {
+      bgColor = AppColors.primary.withOpacity(0.15);
+    }
+
+    final effectiveColor =
+        isToday && bgColor == null ? AppColors.primary : textColor;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.all(3),
+        decoration: isDashed
+            ? BoxDecoration(
+                border: Border.all(
+                    color: AppColors.primary.withOpacity(0.5), width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+              )
+            : BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(8),
+                border: isToday
+                    ? Border.all(color: AppColors.primary, width: 2)
+                    : null,
+              ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '$etDay',
+              style: GoogleFonts.poppins(
+                fontSize: AppFonts.captionL,
+                fontWeight: isToday || isSelected
+                    ? FontWeight.w700
+                    : FontWeight.w400,
+                color: effectiveColor,
+              ),
+            ),
+            Text(
+              '$gregorianDay',
+              style: TextStyle(
+                fontSize: 8,
+                color: effectiveColor.withOpacity(0.55),
+                height: 1.0,
+              ),
+            ),
+          ],
         ),
-        Text(
-          '${day.day}',
-          style: TextStyle(
-            fontSize: 8,
-            color: textColor.withOpacity(0.55),
-            height: 1.0,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
