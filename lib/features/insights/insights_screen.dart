@@ -13,6 +13,19 @@ import '../../../models/cycle_model.dart';
 import '../../../providers/cycle_provider.dart';
 import '../../../providers/language_provider.dart';
 
+const Map<String, String> _kAmharicSymptoms = {
+  'Cramps': 'የሆድ ቁርጠት',
+  'Headache': 'ራስ ምታት',
+  'Mood Swings': 'ስሜት ለውጥ',
+  'Bloating': 'የሆድ መነፋት',
+  'Fatigue': 'ድካም',
+  'Nausea': 'ማቅለሽለሽ',
+  'Back Pain': 'የጀርባ ሕመም',
+  'Breast Tenderness': 'ጡት ሕመም',
+  'Spotting': 'ትንሽ ደም መፍሰስ',
+  'Acne': 'ቡግር',
+};
+
 class InsightsScreen extends StatelessWidget {
   const InsightsScreen({Key? key}) : super(key: key);
 
@@ -118,6 +131,8 @@ class _InsightsBody extends StatelessWidget {
         isDark ? AppColors.darkCardBackground : AppColors.lightCardBackground;
     final textPrimary =
         isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
 
     // Summary stats
     final totalCycles = cycles.cycles.length;
@@ -371,7 +386,9 @@ class _InsightsBody extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  e.value.key,
+                                  isAmharic
+                                      ? (_kAmharicSymptoms[e.value.key] ?? e.value.key)
+                                      : e.value.key,
                                   style: GoogleFonts.poppins(
                                       fontSize: 10, color: textPrimary),
                                 ),

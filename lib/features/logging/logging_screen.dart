@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -7,8 +9,10 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/utils/ethiopian_calendar.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../models/cycle_model.dart';
+import '../../../core/utils/cycle_calculator.dart';
 import '../../../providers/cycle_provider.dart';
 import '../../../providers/language_provider.dart';
+import '../../../services/notification_service.dart';
 
 class LoggingScreen extends StatefulWidget {
   final CycleData? existing;
@@ -48,8 +52,8 @@ class _LoggingScreenState extends State<LoggingScreen> {
     'Nausea': 'ማቅለሽለሽ',
     'Back Pain': 'የጀርባ ሕመም',
     'Breast Tenderness': 'ጡት ሕመም',
-    'Spotting': 'ትንሽ ደም',
-    'Acne': 'ቅርጫ',
+    'Spotting': 'ትንሽ ደም መፍሰስ',
+    'Acne': 'ቡግር',
   };
 
   @override
@@ -166,6 +170,17 @@ class _LoggingScreenState extends State<LoggingScreen> {
         flowIntensity: _flowIntensity,
       );
       await provider.saveCycle(cycleData);
+
+      // Schedule notifications based on updated cycle data
+      final nextPeriod = CycleCalculator.calculateNextPeriod(
+          cycleData.startDate, provider.cycleLength);
+      final ovulation = CycleCalculator.calculateOvulationDate(
+          cycleData.startDate, provider.cycleLength);
+      unawaited(NotificationService.instance.rescheduleAllNotifications(
+        nextPeriod: nextPeriod,
+        ovulationDate: ovulation,
+        daysBefore: 2,
+      ));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

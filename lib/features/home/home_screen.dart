@@ -737,9 +737,24 @@ class _RecentSymptoms extends StatelessWidget {
 
   const _RecentSymptoms({required this.symptoms, required this.l10n});
 
+  static const Map<String, String> _amharicSymptoms = {
+    'Cramps': 'የሆድ ቁርጠት',
+    'Headache': 'ራስ ምታት',
+    'Mood Swings': 'ስሜት ለውጥ',
+    'Bloating': 'የሆድ መነፋት',
+    'Fatigue': 'ድካም',
+    'Nausea': 'ማቅለሽለሽ',
+    'Back Pain': 'የጀርባ ሕመም',
+    'Breast Tenderness': 'ጡት ሕመም',
+    'Spotting': 'ትንሽ ደም መፍሰስ',
+    'Acne': 'ቡግር',
+  };
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -760,7 +775,8 @@ class _RecentSymptoms extends StatelessWidget {
               .take(6)
               .map(
                 (s) => Chip(
-                  label: Text(s,
+                  label: Text(
+                      isAmharic ? (_amharicSymptoms[s] ?? s) : s,
                       style: GoogleFonts.poppins(
                           fontSize: AppFonts.captionL,
                           color: AppColors.primary)),

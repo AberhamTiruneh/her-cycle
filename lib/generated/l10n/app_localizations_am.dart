@@ -4,7 +4,7 @@ class AppLocalizationsAm extends AppLocalizations {
   AppLocalizationsAm() : super('am');
 
   @override
-  String get appName => 'HER_CYCLE';
+  String get appName => 'አበባየ';
   @override
   String get appTagline => 'ዑደትዎን ይከታተሉ፣ ሰውነትዎን ያውቁ';
   @override
@@ -30,7 +30,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get success => 'ስኬት';
   @override
-  String get logout => 'ውጤቱ';
+  String get logout => 'ውጣ';
   @override
   String get confirm => 'ያረጋግጡ';
   @override
@@ -102,7 +102,7 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get endDate => 'የማብቂያ ቀን';
   @override
-  String get flowIntensity => 'የፍሰት ጥንካሬ';
+  String get flowIntensity => 'የፍሰት መጠን';
   @override
   String get light => 'ቀላል';
   @override

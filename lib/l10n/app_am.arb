@@ -1,5 +1,5 @@
 {
-  "appName": "የእኔ ወር አበባ",
+  "appName": "አበባየ",
   "appTagline": "ዑደትዎን ይከታተሉ፣ ሰውነትዎን ያውቁ",
   "welcome": "እንኳን ደህና መጡ",
   "continue": "ቀጥል",
@@ -12,7 +12,7 @@
   "loading": "በመጫን ላይ...",
   "error": "አንዳንድ ነገር ሲሳሳት",
   "success": "ስኬት",
-  "logout": "ውጤቱ",
+  "logout": "ውጣ",
   "periodTracker": "የወር አበባ መከታተያ",
   "startDate": "የጀመረበት ቀን",
   "endDate": "የማብቂያ ቀን",

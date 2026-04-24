@@ -13,6 +13,19 @@ import '../../../providers/cycle_provider.dart';
 import '../../../providers/language_provider.dart';
 import '../logging/logging_screen.dart';
 
+const Map<String, String> _kAmharicSymptoms = {
+  'Cramps': 'የሆድ ቁርጠት',
+  'Headache': 'ራስ ምታት',
+  'Mood Swings': 'ስሜት ለውጥ',
+  'Bloating': 'የሆድ መነፋት',
+  'Fatigue': 'ድካም',
+  'Nausea': 'ማቅለሽለሽ',
+  'Back Pain': 'የጀርባ ሕመም',
+  'Breast Tenderness': 'ጡት ሕመም',
+  'Spotting': 'ትንሽ ደም መፍሰስ',
+  'Acne': 'ቡግር',
+};
+
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
 
@@ -520,6 +533,8 @@ class _DayDetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAmharic =
+        context.watch<LanguageProvider>().currentLanguage == 'am';
     // Find matching logged cycle
     CycleData? matching;
     for (final c in cycles.cycles) {
@@ -544,7 +559,8 @@ class _DayDetailPanel extends StatelessWidget {
             spacing: 8,
             children: matching.symptoms
                 .map((s) => Chip(
-                      label: Text(s,
+                      label: Text(
+                          isAmharic ? (_kAmharicSymptoms[s] ?? s) : s,
                           style:
                               GoogleFonts.poppins(fontSize: AppFonts.captionL)),
                       backgroundColor: AppColors.primary.withOpacity(0.1),
