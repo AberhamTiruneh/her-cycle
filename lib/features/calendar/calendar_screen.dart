@@ -136,14 +136,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     setState(() => _focusedDay = focused),
                 calendarBuilders: CalendarBuilders(
                   defaultBuilder: (ctx, day, focusedDay) =>
-                      _buildDayCell(ctx, day, cycles, false,
-                          isAmharic: false),
+                      _buildDayCell(ctx, day, cycles, false),
                   selectedBuilder: (ctx, day, focusedDay) =>
-                      _buildDayCell(ctx, day, cycles, true,
-                          isAmharic: false),
+                      _buildDayCell(ctx, day, cycles, true),
                   todayBuilder: (ctx, day, focusedDay) =>
                       _buildDayCell(ctx, day, cycles, false,
-                          isToday: true, isAmharic: false),
+                          isToday: true),
                 ),
                 headerStyle: HeaderStyle(
                   formatButtonVisible: true,
@@ -233,7 +231,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     CycleProvider cycles,
     bool isSelected, {
     bool isToday = false,
-    bool isAmharic = false,
   }) {
     final type = _getDayType(day, cycles);
     Color? bgColor;
@@ -284,23 +281,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   : null,
             ),
       child: Center(
-        child: isAmharic
-            ? _EthiopianDayLabel(
-                day: day,
-                textColor:
-                    isToday && bgColor == null ? AppColors.primary : textColor,
-                bold: isToday || isSelected,
-              )
-            : Text(
-                '${day.day}',
-                style: GoogleFonts.poppins(
-                  fontSize: AppFonts.captionL,
-                  fontWeight:
-                      isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
-                  color:
-                      isToday && bgColor == null ? AppColors.primary : textColor,
-                ),
-              ),
+        child: Text(
+          '${day.day}',
+          style: GoogleFonts.poppins(
+            fontSize: AppFonts.captionL,
+            fontWeight:
+                isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
+            color:
+                isToday && bgColor == null ? AppColors.primary : textColor,
+          ),
+        ),
       ),
     );
   }
