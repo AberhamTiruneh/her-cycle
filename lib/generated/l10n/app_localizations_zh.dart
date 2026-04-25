@@ -212,4 +212,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aboutUs => '关于我们';
   @override
   String get help => '帮助与支持';
+  @override
+  String get healthNews => '健康新闻';
+  @override
+  String get topHealthStories => '首要健康新闻';
 }

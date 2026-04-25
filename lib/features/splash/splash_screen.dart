@@ -88,8 +88,8 @@ class _SplashScreenState extends State<SplashScreen>
                 SizedBox(
                   width: 220,
                   height: 220,
-                  child: Lottie.network(
-                    'https://assets5.lottiefiles.com/packages/lf20_touohxv0.json',
+                  child: Lottie.asset(
+                    'assets/animations/splash_animation.json',
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.favorite,

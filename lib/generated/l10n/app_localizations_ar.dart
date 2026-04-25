@@ -213,4 +213,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutUs => 'عننا';
   @override
   String get help => 'المساعدة والدعم';
+  @override
+  String get healthNews => 'أخبار صحية';
+  @override
+  String get topHealthStories => 'أبرز الأخبار الصحية';
 }

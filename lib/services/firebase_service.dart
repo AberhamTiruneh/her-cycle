@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import '../../firebase_options.dart';
 
 class FirebaseService {
@@ -27,20 +28,16 @@ class FirebaseService {
     } on FirebaseException catch (e) {
       if (e.code != 'duplicate-app') {
         // Log but don't crash — app will show auth error gracefully
-        // ignore: avoid_print
-        print('Firebase init error: ${e.code} — ${e.message}');
+        if (kDebugMode) debugPrint('Firebase init error: ${e.code} — ${e.message}');
       }
     } catch (e) {
       // Catch any other init errors (e.g. missing iOS config)
-      // ignore: avoid_print
-      print('Firebase init error: $e');
+      if (kDebugMode) debugPrint('Firebase init error: $e');
     }
 
-    // Firestore offline persistence is disabled until the Firebase database
-    // is created in the console (https://console.cloud.google.com/datastore/setup).
-    // Once the database exists, re-enable with persistenceEnabled: true.
+    // Firestore offline persistence: enabled for better offline UX.
     FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: false,
+      persistenceEnabled: true,
     );
   }
 

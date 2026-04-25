@@ -88,7 +88,21 @@ class AuthService {
         password: password,
       );
 
-      return _fetchOrCreateUserDoc(credential.user!);
+      final user = credential.user!;
+      // Firestore fetch is best-effort — if rules aren't deployed or the
+      // database doesn't exist yet, fall back to Firebase Auth data so the
+      // user can still log in.
+      try {
+        return await _fetchOrCreateUserDoc(user);
+      } catch (_) {
+        return UserModel(
+          uid: user.uid,
+          name: user.displayName ?? '',
+          email: user.email ?? '',
+          phoneNumber: user.phoneNumber ?? '',
+          createdAt: DateTime.now(),
+        );
+      }
     });
   }
 

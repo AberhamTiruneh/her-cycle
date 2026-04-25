@@ -483,6 +483,10 @@ class _AuthScreenState extends State<AuthScreen>
         TextFormField(
           controller: _signupPhoneCtrl,
           keyboardType: TextInputType.phone,
+          style: const TextStyle(
+            color: AppColors.lightTextPrimary,
+            fontSize: AppFonts.bodyM,
+          ),
           decoration: InputDecoration(
             hintText: '+1 555 000 0000',
             prefixIcon: Container(

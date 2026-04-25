@@ -212,4 +212,8 @@ class AppLocalizationsAm extends AppLocalizations {
   String get aboutUs => 'ስለ እኛ';
   @override
   String get help => 'እርዳታ እና ድጋፍ';
+  @override
+  String get healthNews => 'የጤና ዜና';
+  @override
+  String get topHealthStories => 'ዋና ዋና የጤና ዜናዎች';
 }
