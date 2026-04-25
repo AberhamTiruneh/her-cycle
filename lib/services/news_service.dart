@@ -52,19 +52,23 @@ class NewsService {
   static const _cacheKey = 'health_news_cache';
   static const _cacheDateKey = 'health_news_cache_date';
 
-  // Three reputable health RSS feeds — no API key required
+  // Three reputable health RSS/Atom feeds — no API key required
   static const List<Map<String, String>> _feeds = [
     {
       'url': 'https://rss.medicalnewstoday.com/featurednews.xml',
       'source': 'Medical News Today',
     },
     {
-      'url': 'https://feeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC',
-      'source': 'WebMD',
+      'url': 'https://tools.cdc.gov/api/v2/resources/media/316422.rss',
+      'source': 'CDC Health',
     },
     {
       'url': 'https://www.who.int/rss-feeds/news-english.xml',
       'source': 'WHO',
+    },
+    {
+      'url': 'https://www.healthline.com/rss/health-news',
+      'source': 'Healthline',
     },
   ];
 
@@ -87,16 +91,18 @@ class NewsService {
       }
     }
 
-    // Fetch fresh articles
+    // Fetch fresh articles — try each feed; take multiple from one feed if needed
     final articles = <NewsArticle>[];
     for (final feed in _feeds) {
       if (articles.length >= count) break;
       try {
-        final article = await _fetchFirstArticle(
+        final needed = count - articles.length;
+        final fetched = await _fetchArticles(
           feed['url']!,
           feed['source']!,
+          needed,
         );
-        if (article != null) articles.add(article);
+        articles.addAll(fetched);
       } catch (_) {
         // Skip failed feed silently
       }
@@ -112,67 +118,112 @@ class NewsService {
     return articles;
   }
 
-  Future<NewsArticle?> _fetchFirstArticle(
-      String feedUrl, String sourceName) async {
+  /// Fetches up to [count] articles from a single feed.
+  /// Supports both RSS (<item>) and Atom (<entry>) formats.
+  Future<List<NewsArticle>> _fetchArticles(
+      String feedUrl, String sourceName, int count) async {
     final response = await http
-        .get(Uri.parse(feedUrl))
-        .timeout(const Duration(seconds: 10));
-    if (response.statusCode != 200) return null;
+        .get(Uri.parse(feedUrl),
+            headers: {'User-Agent': 'HerCycle/1.0 (health app)'})
+        .timeout(const Duration(seconds: 12));
+    if (response.statusCode != 200) return [];
 
     final document = XmlDocument.parse(response.body);
-    final items = document.findAllElements('item');
-    if (items.isEmpty) return null;
 
-    final item = items.first;
+    // Try RSS <item> first, then Atom <entry>
+    var elements = document.findAllElements('item').toList();
+    final isAtom = elements.isEmpty;
+    if (isAtom) {
+      elements = document.findAllElements('entry').toList();
+    }
+    if (elements.isEmpty) return [];
 
-    String _text(String tag) =>
+    final results = <NewsArticle>[];
+    for (final el in elements) {
+      if (results.length >= count) break;
+      final article = isAtom
+          ? _parseAtomEntry(el, feedUrl, sourceName)
+          : _parseRssItem(el, feedUrl, sourceName);
+      if (article != null) results.add(article);
+    }
+    return results;
+  }
+
+  NewsArticle? _parseRssItem(
+      XmlElement item, String feedUrl, String sourceName) {
+    String t(String tag) =>
         item.findElements(tag).firstOrNull?.innerText.trim() ?? '';
 
-    final title = _text('title');
+    final title = t('title');
     if (title.isEmpty) return null;
 
-    final link = _text('link');
-    final rawDesc = _text('description').isNotEmpty
-        ? _text('description')
-        : _text('content:encoded');
-    final cleanDesc =
-        rawDesc.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    final link = t('link');
+    final rawDesc =
+        t('description').isNotEmpty ? t('description') : t('content:encoded');
+    final desc = _sanitize(rawDesc);
 
-    // Try media:content url attribute for image
-    String? imageUrl;
-    final mediaContent = item.findElements('media:content').firstOrNull;
-    imageUrl = mediaContent?.getAttribute('url');
-    if (imageUrl == null || imageUrl.isEmpty) {
-      final enclosure = item.findElements('enclosure').firstOrNull;
-      imageUrl = enclosure?.getAttribute('url');
-    }
+    String? imageUrl = item
+        .findElements('media:content')
+        .firstOrNull
+        ?.getAttribute('url');
+    imageUrl ??=
+        item.findElements('enclosure').firstOrNull?.getAttribute('url');
 
-    DateTime? publishedAt;
-    final pubDateStr = _text('pubDate');
-    if (pubDateStr.isNotEmpty) {
-      try {
-        publishedAt = _parseRfc822(pubDateStr);
-      } catch (_) {}
-    }
+    final pubDateStr = t('pubDate');
+    final publishedAt =
+        pubDateStr.isNotEmpty ? _parseRfc822(pubDateStr) : null;
 
     return NewsArticle(
       title: title,
-      description: cleanDesc.isNotEmpty
-          ? (cleanDesc.length > 200
-              ? '${cleanDesc.substring(0, 200)}…'
-              : cleanDesc)
-          : 'Tap to read more.',
+      description: desc,
       url: link.isNotEmpty ? link : feedUrl,
       source: sourceName,
       publishedAt: publishedAt,
-      imageUrl: (imageUrl != null && imageUrl.isNotEmpty) ? imageUrl : null,
+      imageUrl: imageUrl?.isNotEmpty == true ? imageUrl : null,
     );
+  }
+
+  NewsArticle? _parseAtomEntry(
+      XmlElement entry, String feedUrl, String sourceName) {
+    String t(String tag) =>
+        entry.findElements(tag).firstOrNull?.innerText.trim() ?? '';
+
+    final title = t('title');
+    if (title.isEmpty) return null;
+
+    // Atom uses <link href="..."/> not text content
+    final linkEl = entry.findElements('link').firstOrNull;
+    final link =
+        linkEl?.getAttribute('href') ?? linkEl?.innerText.trim() ?? feedUrl;
+
+    final rawDesc = t('summary').isNotEmpty ? t('summary') : t('content');
+    final desc = _sanitize(rawDesc);
+
+    // Atom uses <published> or <updated>
+    final pubStr = t('published').isNotEmpty ? t('published') : t('updated');
+    DateTime? publishedAt;
+    if (pubStr.isNotEmpty) publishedAt = DateTime.tryParse(pubStr);
+
+    return NewsArticle(
+      title: title,
+      description: desc,
+      url: link,
+      source: sourceName,
+      publishedAt: publishedAt,
+      imageUrl: null,
+    );
+  }
+
+  String _sanitize(String raw) {
+    final clean = raw.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    if (clean.isEmpty) return 'Tap to read more.';
+    return clean.length > 200 ? '${clean.substring(0, 200)}…' : clean;
   }
 
   // Minimal RFC-822 parser for common RSS date formats
   DateTime? _parseRfc822(String s) {
     // Example: "Mon, 01 Jan 2024 12:00:00 +0000"
-    final months = {
+    const months = {
       'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
       'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
       'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
@@ -184,8 +235,10 @@ class NewsService {
     final year = int.tryParse(parts[3]) ?? 2024;
     final timeParts = parts[4].split(':');
     final hour = int.tryParse(timeParts[0]) ?? 0;
-    final minute = timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 0) : 0;
-    final second = timeParts.length > 2 ? (int.tryParse(timeParts[2]) ?? 0) : 0;
+    final minute =
+        timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 0) : 0;
+    final second =
+        timeParts.length > 2 ? (int.tryParse(timeParts[2]) ?? 0) : 0;
     return DateTime.utc(year, month, day, hour, minute, second);
   }
 
