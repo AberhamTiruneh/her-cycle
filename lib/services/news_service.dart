@@ -109,10 +109,22 @@ class NewsService {
     }
 
     if (articles.isNotEmpty) {
-      // Cache result
+      // Cache fresh result with today's date
       await prefs.setString(
           _cacheKey, jsonEncode(articles.map((a) => a.toJson()).toList()));
       await prefs.setString(_cacheDateKey, today);
+      return articles;
+    }
+
+    // All feeds failed — fall back to previous cache rather than showing nothing
+    final raw = prefs.getString(_cacheKey);
+    if (raw != null) {
+      try {
+        final list = (jsonDecode(raw) as List)
+            .map((e) => NewsArticle.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (list.isNotEmpty) return list;
+      } catch (_) {}
     }
 
     return articles;
