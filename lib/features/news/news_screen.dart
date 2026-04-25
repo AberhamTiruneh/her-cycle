@@ -20,13 +20,13 @@ class _NewsScreenState extends State<NewsScreen> {
   @override
   void initState() {
     super.initState();
-    _newsFuture = NewsService.instance.fetchTopArticles(count: 3);
+    _newsFuture = NewsService.instance.fetchAllArticles();
   }
 
   Future<void> _refresh() async {
     await NewsService.instance.clearCache();
     setState(() {
-      _newsFuture = NewsService.instance.fetchTopArticles(count: 3);
+      _newsFuture = NewsService.instance.fetchAllArticles();
     });
   }
 
@@ -101,7 +101,7 @@ class _NewsScreenState extends State<NewsScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '· ${l10n.topHealthStories}',
+                        '· ${articles.length} stories',
                         style: GoogleFonts.poppins(
                           fontSize: AppFonts.bodyS,
                           color: textSec,
@@ -112,18 +112,13 @@ class _NewsScreenState extends State<NewsScreen> {
                 ),
 
                 // Article cards
-                ...articles.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final article = entry.value;
-                  return _ArticleCard(
-                    article: article,
-                    rank: idx + 1,
-                    cardBg: cardBg,
-                    textPrimary: textPrimary,
-                    textSec: textSec,
-                    isDark: isDark,
-                  );
-                }),
+                ...articles.map((article) => _ArticleCard(
+                  article: article,
+                  cardBg: cardBg,
+                  textPrimary: textPrimary,
+                  textSec: textSec,
+                  isDark: isDark,
+                )),
 
                 const SizedBox(height: 80),
               ],
@@ -141,7 +136,7 @@ class _NewsScreenState extends State<NewsScreen> {
         isDark ? AppColors.darkBackground : const Color(0xFFF5F5F5);
     return ListView.builder(
       padding: const EdgeInsets.all(AppSizes.paddingM),
-      itemCount: 3,
+      itemCount: 6,
       itemBuilder: (_, __) => Padding(
         padding: const EdgeInsets.only(bottom: AppSizes.spacingM),
         child: _ShimmerCard(base: shimmerBase, highlight: shimmerHighlight),
@@ -196,7 +191,6 @@ class _NewsScreenState extends State<NewsScreen> {
 
 class _ArticleCard extends StatelessWidget {
   final NewsArticle article;
-  final int rank;
   final Color cardBg;
   final Color textPrimary;
   final Color textSec;
@@ -204,7 +198,6 @@ class _ArticleCard extends StatelessWidget {
 
   const _ArticleCard({
     required this.article,
-    required this.rank,
     required this.cardBg,
     required this.textPrimary,
     required this.textSec,
@@ -231,7 +224,7 @@ class _ArticleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Rank badge + source row
+            // Source + time row
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppSizes.paddingL,
@@ -241,25 +234,12 @@ class _ArticleCard extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 28,
-                    height: 28,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
+                      color: AppColors.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Center(
-                      child: Text(
-                        '$rank',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
                     child: Text(
                       article.source,
                       style: GoogleFonts.poppins(
@@ -269,6 +249,7 @@ class _ArticleCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const Spacer(),
                   if (article.publishedAt != null)
                     Text(
                       _timeAgo(article.publishedAt!),

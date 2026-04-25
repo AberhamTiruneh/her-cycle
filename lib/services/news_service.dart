@@ -72,8 +72,8 @@ class NewsService {
     },
   ];
 
-  /// Returns up to [count] articles, using a daily cache.
-  Future<List<NewsArticle>> fetchTopArticles({int count = 3}) async {
+  /// Returns all articles from all feeds, sorted newest-first, using a daily cache.
+  Future<List<NewsArticle>> fetchAllArticles() async {
     final prefs = await SharedPreferences.getInstance();
     final today = _todayKey();
 
@@ -91,22 +91,20 @@ class NewsService {
       }
     }
 
-    // Fetch fresh articles — try each feed; take multiple from one feed if needed
-    final articles = <NewsArticle>[];
-    for (final feed in _feeds) {
-      if (articles.length >= count) break;
-      try {
-        final needed = count - articles.length;
-        final fetched = await _fetchArticles(
-          feed['url']!,
-          feed['source']!,
-          needed,
-        );
-        articles.addAll(fetched);
-      } catch (_) {
-        // Skip failed feed silently
-      }
-    }
+    // Fetch all articles from every feed in parallel
+    final futures = _feeds.map((feed) =>
+        _fetchArticles(feed['url']!, feed['source']!).catchError((_) => <NewsArticle>[])
+    ).toList();
+    final results = await Future.wait(futures);
+    final articles = results.expand((list) => list).toList();
+
+    // Sort newest-first; articles without a date go to the bottom
+    articles.sort((a, b) {
+      if (a.publishedAt == null && b.publishedAt == null) return 0;
+      if (a.publishedAt == null) return 1;
+      if (b.publishedAt == null) return -1;
+      return b.publishedAt!.compareTo(a.publishedAt!);
+    });
 
     if (articles.isNotEmpty) {
       // Cache fresh result with today's date
@@ -130,10 +128,10 @@ class NewsService {
     return articles;
   }
 
-  /// Fetches up to [count] articles from a single feed.
+  /// Fetches all articles from a single feed.
   /// Supports both RSS (<item>) and Atom (<entry>) formats.
   Future<List<NewsArticle>> _fetchArticles(
-      String feedUrl, String sourceName, int count) async {
+      String feedUrl, String sourceName) async {
     final response = await http
         .get(Uri.parse(feedUrl),
             headers: {'User-Agent': 'HerCycle/1.0 (health app)'})
@@ -152,7 +150,6 @@ class NewsService {
 
     final results = <NewsArticle>[];
     for (final el in elements) {
-      if (results.length >= count) break;
       final article = isAtom
           ? _parseAtomEntry(el, feedUrl, sourceName)
           : _parseRssItem(el, feedUrl, sourceName);
