@@ -214,4 +214,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get aboutUs => 'हमारे बारे में';
   @override
   String get help => 'सहायता और समर्थन';
+  @override
+  String get healthNews => 'स्वास्थ्य समाचार';
+  @override
+  String get topHealthStories => 'शीर्ष स्वास्थ्य खबरें';
 }

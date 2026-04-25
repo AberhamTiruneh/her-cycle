@@ -215,4 +215,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get aboutUs => 'Sobre nós';
   @override
   String get help => 'Ajuda e suporte';
+  @override
+  String get healthNews => 'Notícias de Saúde';
+  @override
+  String get topHealthStories => 'Principais notícias de saúde';
 }

@@ -214,4 +214,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get aboutUs => 'Acerca de';
   @override
   String get help => 'Ayuda y soporte';
+  @override
+  String get healthNews => 'Noticias de Salud';
+  @override
+  String get topHealthStories => 'Principales noticias de salud';
 }

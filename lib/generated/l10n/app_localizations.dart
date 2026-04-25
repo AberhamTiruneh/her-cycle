@@ -156,6 +156,10 @@ abstract class AppLocalizations {
   String get analysis;
   String get predictionsData;
 
+  // ── News ──────────────────────────────────────────────────────────────────
+  String get healthNews;
+  String get topHealthStories;
+
   // ── Settings / Profile ────────────────────────────────────────────────────
   String get language;
   String get selectLanguage;

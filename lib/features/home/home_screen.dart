@@ -17,6 +17,7 @@ import '../profile/screens/profile_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../insights/insights_screen.dart';
 import '../logging/logging_screen.dart';
+import '../news/news_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -37,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const _HomeBody(),
       const CalendarScreen(),
       const InsightsScreen(),
+      const NewsScreen(),
       const ProfileScreen(),
     ];
   }
@@ -73,6 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedIcon:
                 const Icon(Icons.bar_chart_rounded, color: AppColors.primary),
             label: l10n.insights,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.newspaper_outlined),
+            selectedIcon:
+                const Icon(Icons.newspaper_rounded, color: AppColors.primary),
+            label: l10n.healthNews,
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline_rounded),

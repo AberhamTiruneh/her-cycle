@@ -214,4 +214,8 @@ class AppLocalizationsSw extends AppLocalizations {
   String get aboutUs => 'Kuhusu Sisi';
   @override
   String get help => 'Msaada na Usaidizi';
+  @override
+  String get healthNews => 'Habari za Afya';
+  @override
+  String get topHealthStories => 'Habari kuu za afya';
 }
