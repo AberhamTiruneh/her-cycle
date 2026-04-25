@@ -215,5 +215,5 @@ class AppLocalizationsAm extends AppLocalizations {
   @override
   String get healthNews => 'የጤና ዜና';
   @override
-  String get topHealthStories => 'አንደኛ የጤና ዜናዎች';
+  String get topHealthStories => 'ዋና ዋና የጤና ዜናዎች';
 }

@@ -201,9 +201,11 @@ class _HomeBody extends StatelessWidget {
                       radius: 22,
                       backgroundColor: Colors.white.withOpacity(0.3),
                       child: Text(
-                        (auth.currentUser?.name.isNotEmpty == true)
+                        auth.currentUser?.name.isNotEmpty == true
                             ? auth.currentUser!.name[0].toUpperCase()
-                            : '?',
+                            : (auth.currentUser?.email.isNotEmpty == true
+                                ? auth.currentUser!.email[0].toUpperCase()
+                                : '?'),
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w700,
                           color: Colors.white,

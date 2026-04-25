@@ -180,7 +180,9 @@ class _LoggingScreenState extends State<LoggingScreen> {
         nextPeriod: nextPeriod,
         ovulationDate: ovulation,
         daysBefore: 2,
-      ));
+      ).catchError((_) {
+        // Notification scheduling failure is non-fatal
+      }));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -195,7 +197,8 @@ class _LoggingScreenState extends State<LoggingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving: $e', style: GoogleFonts.poppins()),
+            content: Text('Could not save. Please try again.',
+                style: GoogleFonts.poppins()),
             backgroundColor: AppColors.error,
           ),
         );
